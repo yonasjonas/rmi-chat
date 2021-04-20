@@ -24,7 +24,7 @@ public class User {
 	}
 	public String getCountry() {
 		return country;
-	}	
+	}
 	public IChatClient getClientInfo() {
 		return clientInfo;
 	}

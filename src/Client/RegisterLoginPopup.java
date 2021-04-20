@@ -1,26 +1,21 @@
 package Client;
 
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.rmi.RemoteException;
+import java.awt.event.WindowEvent;
 import java.util.Arrays;
 import java.util.Locale;
 
 import javax.swing.*;
 
-import Client.ChatUI;
-
 /** @see https://stackoverflow.com/a/3002830/230513 */
-class JOptionPaneTest {
+class RegisterLoginPopup {
 	
-	
-
-	static void display() {
+	static void displayLogin() {
 		
-
+		//Boolean chatInitiated = false;
 		Country[] listCountry = createCountryList();
 		JComboBox<Country> combo = new JComboBox<>(listCountry);
 		//JComboBox<String> combo = new JComboBox<>(countryCodes);
@@ -77,14 +72,15 @@ class JOptionPaneTest {
 			ChatUI.SEND_ACTION = "sendAction";
 			
 			if (ChatUI.name != null) {
+				//panel.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
 				ChatUI ch = new ChatUI();
 				ch.loginPopUp();
+				//panel.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
 			}
 		} else {
 			System.out.println("Cancelled");
 			//display();
-		}		
-		
+		}
 	}
 	
 	private static Country[] createCountryList() {
@@ -99,17 +95,17 @@ class JOptionPaneTest {
             listCountry[i] = new Country(code, name);
         }
  
-        Arrays.sort(listCountry);
- 
+        Arrays.sort(listCountry); 
         return listCountry;
     }
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 
+			
 			@Override
 			public void run() {
-				display();
+				displayLogin();
 			}
 		});
 	}

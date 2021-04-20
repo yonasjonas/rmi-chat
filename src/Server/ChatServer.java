@@ -1,6 +1,9 @@
 package Server;
 
+import java.awt.Color;
+import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 //import java.rmi.Remote;
 import java.rmi.RemoteException;
 //import java.rmi.server.RemoteRef;
@@ -9,8 +12,6 @@ import java.util.Date;
 import java.util.Vector;
 
 import Client.IChatClient;
-//import Server.User;
-import server.Chatter;
 
 public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
@@ -57,6 +58,10 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 		String appendText = name + ": " + message + "\n";
 		massSend(appendText);
 	}
+	
+	public void checkName() {
+		
+	}
 
 	public void massSend(String text) {
 		// int i = 0;
@@ -71,56 +76,51 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 				e.printStackTrace();
 			}
 		}
-
+	}
+	
+	public void sendPrivate(int[] list, String message) throws RemoteException {
+		User u;
+		for (int i : list) {
+			u = chatClients.elementAt(i);
+			u.getClientInfo().messageFromServer(message);
+		}
 	}
 
 	@Override
 	public void initiateRegister(String[] details) throws RemoteException {
-		if (chatClients.isEmpty()) {
-			registerUser(details);
-		}
-		else {
-			for (User c : chatClients) {
-				if (c.getName().equals(details[0])) {
-				
-					System.out.println(details[0] + " has same name as you, please pick another username");
-					//System.out.println(new Date(System.currentTimeMillis()));
-					//chatClients.remove(c);
-					break;
-				}
-				else {
-					registerUser(details);
-				}
-			}
-			
-		}
+		registerUser(details);
 		
-		
-		
-		//registerUser(details);
-		//checkName(details);
-	}
-	
-//	public void checkName(String[] details) {
-//		
-//		
-//		for (User c : chatClients) {
-//			if (c.getName().equals(details[0])) {
-//				
-//				System.out.println(details[0] + " has same name as you, please pick another username");
-//				//System.out.println(new Date(System.currentTimeMillis()));
-//				//chatClients.remove(c);
-//				//break;
-//			}
-//			else {
-//				//registerUser(details);
+//		if (chatClients.isEmpty()) {
+//			registerUser(details);
+//		} else {
+//			for (User u : chatClients) {
+//				if (u.getName().equals(details[0])) {
+//
+//					System.out.println(details[0] + " username is taken, please choose again");
+//					try {
+//						IChatClient userStub = (IChatClient) Naming.lookup("rmi://" + details[4] + "/" + details[3]);
+//						userStub.messageFromServer(details[0] + " username is taken, please choose again");
+//						//String newMessage;
+//						//userStub.openLogin(newMessage);
+//						
+//					} catch (MalformedURLException | RemoteException | NotBoundException e) {
+//						// TODO Auto-generated catch block
+//						e.printStackTrace();
+//					}
+//					
+//
+//					// System.out.println(new Date(System.currentTimeMillis()));
+//					// chatClients.remove(c);
+//
+//					break;
+//				} else {
+//					registerUser(details);
+//				}
 //			}
 //		}
-//	}
+	}
 
 	public void registerUser(String[] details) {
-		
-		
 
 		try {
 
@@ -130,9 +130,11 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 			IChatClient userStub = (IChatClient) Naming.lookup("rmi://" + details[4] + "/" + details[3]);
 			chatClients.addElement(new User(details[0], details[1], details[2], userStub));
 
-			userStub.messageFromServer("Welcome " + details[0] + details[1] + details[2] + " you are fully connected :) \n");
+			userStub.messageFromServer(
+					"Welcome " + details[0] + details[1] + details[2] + " you are fully connected :) \n");
 
-			massSend("Server: New user: " + details[0] + "\nBorn in: " + details[1] + "\nFrom: " + details[2] + " just joined");
+			massSend("Server: New user: " + details[0] + "\nBorn in: " + details[1] + "\nFrom: " + details[2]
+					+ " just joined");
 
 			updateUserList();
 			// printUsers();
@@ -146,11 +148,11 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
 	public void leaveChat(String name) throws RemoteException {
 
-		for (User c : chatClients) {
-			if (c.getName().equals(name)) {
+		for (User u : chatClients) {
+			if (u.getName().equals(name)) {
 				System.out.println(name + " left the chat...");
 				System.out.println(new Date(System.currentTimeMillis()));
-				chatClients.remove(c);
+				chatClients.remove(u);
 				break;
 			}
 		}
