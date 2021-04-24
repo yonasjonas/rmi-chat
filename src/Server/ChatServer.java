@@ -29,6 +29,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 //		}
 //		
 //	}
+	
 
 	public static void main(String args[]) {
 		// System.setProperty("java.rmi.server.hostname","192.168.0.87");
@@ -68,7 +69,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 		// int arrayLength = chatClients.size();
 
 		for (User u : chatClients) {
-			System.out.print(u);
+			//System.out.print(u);
 			try {
 				u.getClientInfo().messageFromServer(text);
 
@@ -86,7 +87,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 		}
 	}
 
-	@Override
+@Override
 	public void initiateRegister(String[] details) throws RemoteException {
 		registerUser(details);
 		
@@ -119,16 +120,18 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 //			}
 //		}
 	}
+	
 
 	public void registerUser(String[] details) {
+		
+		//User u = new User(details[0], details[1], details[2], details[3], userStub);
+		String colour = "";
 
 		try {
-
-			// IChatClient userDetails = (IChatClient).Naming.lookup("rmi://" + details[1] +
-			// "/" + details[2]) ;
-
-			IChatClient userStub = (IChatClient) Naming.lookup("rmi://" + details[4] + "/" + details[3]);
-			chatClients.addElement(new User(details[0], details[1], details[2], userStub));
+			IChatClient userStub = (IChatClient) Naming.lookup("rmi://" + details[5] + "/" + details[4]);
+			User u = new User(details[0], details[1], details[2], details[3], userStub);
+			
+			chatClients.addElement(u);
 
 			userStub.messageFromServer(
 					"Welcome " + details[0] + details[1] + details[2] + " you are fully connected :) \n");
@@ -150,8 +153,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
 		for (User u : chatClients) {
 			if (u.getName().equals(name)) {
-				System.out.println(name + " left the chat...");
-				System.out.println(new Date(System.currentTimeMillis()));
+				System.out.println(name + " left the chat....");
 				chatClients.remove(u);
 				break;
 			}
@@ -173,6 +175,17 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 			}
 		}
 	}
+	
+//	public String[] getColours() {
+//		String[] colourIds = new String[chatClients.size()];
+//		for (int i = 0; i < colourIds.length; i++) {
+//			allUsers[i] = i;
+//		}
+//		
+//		return allUsers;
+//	}
+	
+
 
 	public String[] getUserList() {
 		String[] allUsers = new String[chatClients.size()];
@@ -184,11 +197,7 @@ public class ChatServer extends UnicastRemoteObject implements IChatServer {
 
 	}
 
-	@Override
-	public String sayHello() throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 	@Override
 	public void updateChat(String name, String chatMessage) {

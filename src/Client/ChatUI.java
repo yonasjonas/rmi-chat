@@ -7,11 +7,14 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import Client.ChatClient;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -29,13 +32,14 @@ import javax.swing.event.ListSelectionListener;
 public class ChatUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	static String name, message, dob, country;
+	static String name, message, dob, country, fcolour;
 	private ChatClient chatClient;
 	private JPanel textPanel;
 	public JScrollPane scrollPane;
 	private Integer usersCount = 0;
 	// private DefaultListModel<String> listModel;
 	static String SEND_ACTION = "loginAction";
+	JTextPane textPane;
 	//private static final String PM_ACTION = "PMAction";
 
 	JTextField countUsersArea;
@@ -45,7 +49,9 @@ public class ChatUI extends JFrame implements ActionListener {
 	protected JPanel defaulUsersPanel, usersPanel, buttonSpace;
 	protected JList<String> jList;
 	protected DefaultListModel<String> defaultList;
+	protected DefaultListModel<String> defaultMessageList;
 	private Document document;
+	StyledDocument doc;
 
 	public static void main(String[] args) {
 
@@ -72,11 +78,13 @@ public class ChatUI extends JFrame implements ActionListener {
 		container.add(addRightSide(), BorderLayout.EAST);
 		
 		frame.add(container);
-		frame.setResizable(false);
-		frame.setSize(700, 500);
-		frame.pack();
+		//frame.setResizable(false);
+		frame.setSize(900, 500);
+		//frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+		
+		
 
 		//loginPopUp();
 		
@@ -109,29 +117,29 @@ public class ChatUI extends JFrame implements ActionListener {
 	public JTextArea loginPopUp() {
 		
 		
-		outputArea.setText("");
-		outputArea.append("New Person just joined : " + name + ". Everyone say hi!\n");
-		frame.setTitle("Chat away " + name);
-		//String details = name + "~~" + dob + "~~" + country;
-		
-		System.out.println("Name: " + name + "DOB: " + dob + "Country: " + country);
+		//outputArea.setText("");
 		try {
-			getConnected(name, dob, country);
+			doc.insertString(0, "Name: " + name + "DOB: " + dob + "Country: " + country + "\n. Everyone say hi!\n", null );
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//outputArea.append("Name: " + name + "DOB: " + dob + "Country: " + country + "\n. Everyone say hi!\n");
+		frame.setTitle("Chat away " + name);
+		
+		System.out.println("Name: " + name + "DOB: " + dob + "Country: " + country + "Colour: " + fcolour);
+		try {
+			getConnected(name, dob, country, fcolour);
 			//System.out.println("getConnected(name, dob, country);"  +name+ dob+ country);
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
 		}
 		
-				//Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-	    //int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
-	    //int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
-	  
-		//outputArea.setLocation(null);
 
 		return outputArea;
 	}
 
-	public JPanel addInputPanel() {	
+	public JPanel addInputPanel() {
 		
 //		if (name == null) {
 //			JOptionPaneTest.display();			
@@ -148,20 +156,42 @@ public class ChatUI extends JFrame implements ActionListener {
 	}
 	
 	public JPanel addOutputPanel() {
-
-		String welcomeMsg = "Enter your name";
-
-		outputArea = new JTextArea(welcomeMsg, 20, 40);
-		outputArea.setForeground(Color.RED);
-		outputArea.setSize(750, 500);
 		
-		outputArea.setMargin(new Insets(10, 10, 10, 10));
-		outputArea.setLineWrap(true);
-		outputArea.setWrapStyleWord(true);
-		outputArea.setEditable(false);
-		JScrollPane scrollPane = new JScrollPane(outputArea);
+		textPane = new JTextPane();
+		textPane.setText( "Intro from add outpupnel" );
+		doc = textPane.getStyledDocument();
+		
+
+		//  Define a keyword attribute
+
+		SimpleAttributeSet keyWord = new SimpleAttributeSet();
+		StyleConstants.setForeground(keyWord, Color.RED);
+
+		//  Add some text
+
+		try
+		{
+		    doc.insertString(0, "Welcome\n", null );
+		    
+		}
+		catch(Exception e) { System.out.println(e); }
+
+		//String welcomeMsg = "Enter your name \n";
+
+		//outputArea = new JTextArea(welcomeMsg, 20, 40);
+		//outputArea.setForeground(Color.RED);
+		
+		//outputArea.setMargin(new Insets(10, 10, 10, 10));
+		//outputArea.setLineWrap(true);
+//		outputArea.setWrapStyleWord(true);
+//		outputArea.setEditable(false);
+		JScrollPane scrollPane = new JScrollPane(textPane);
 		textPanel = new JPanel();
+		scrollPane.setSize(700, 500);
+		
 		textPanel.add(scrollPane);
+		
+		
 
 		return textPanel;
 
@@ -176,12 +206,9 @@ public class ChatUI extends JFrame implements ActionListener {
 		usersLabel.setLayout(null);
 		
 		String[] noUsers = {"Login to view"};
-		updateUsersPanel(noUsers);
-		
-		usersPanel.add(usersLabel);
-		
-		return usersPanel;
-		
+		updateUsersPanel(noUsers);		
+		usersPanel.add(usersLabel);		
+		return usersPanel;		
 		
 	}
 	
@@ -195,7 +222,7 @@ public class ChatUI extends JFrame implements ActionListener {
 		for(String u : list){
 			defaultList.addElement("User: " + u);
 			usersCount++;
-			System.out.print("Count: " + usersCount);
+			//System.out.print("Count: " + usersCount);
 	    }
 		
 		jList = new JList<String>(defaultList);		
@@ -222,18 +249,12 @@ public class ChatUI extends JFrame implements ActionListener {
 	}
 	
 	public JPanel usersCount(int usersCount) {
-		
-		
 		JPanel countPanel = new JPanel();		
 		countUsersArea = new JTextField();
-		countUsersArea.setSize(20, 50);
-		
+		countUsersArea.setSize(20, 50);		
 		countUsersArea.setMargin(new Insets(10, 10, 10, 10));
 		countUsersArea.setEditable(false);
-		countPanel.add(countUsersArea, BorderLayout.CENTER);	
-		
-		
-		
+		countPanel.add(countUsersArea, BorderLayout.CENTER);
 		return countPanel;
 	}
 	
@@ -243,8 +264,8 @@ public class ChatUI extends JFrame implements ActionListener {
 	public JButton addButton() {
 
 		buttonSpace = new JPanel(new GridLayout(1, 1, 5, 5));
-		JButton sendMsgButton = new JButton("Send");
-		sendMsgButton.setBounds(550, 350, 100, 50);
+		JButton sendMsgButton = new JButton("Send to all");
+		sendMsgButton.setBounds(650, 250, 200, 150);
 		sendMsgButton.setActionCommand(SEND_ACTION);
 		sendMsgButton.addActionListener(this);
 		buttonSpace.add(sendMsgButton);
@@ -276,10 +297,11 @@ public class ChatUI extends JFrame implements ActionListener {
 		
 		if (privateList.length > 0) {
 			SEND_ACTION = "pmAction";
-			sendMsgButton.setText("Send to " + jList.getSelectedValue() );
+			
+			//sendMsgButton.setText("Send to " + name );
 		} else {
 			SEND_ACTION = "sendAction";
-			sendMsgButton.setText("Send to all" );
+			//sendMsgButton.setText("Send to all" );
 		}
 		// System.out.println("false: " + e.getActionCommand());
 		if (SEND_ACTION == "loginAction") {
@@ -287,7 +309,7 @@ public class ChatUI extends JFrame implements ActionListener {
 			//loginPopUp();
 		} 
 		if (SEND_ACTION == "pmAction") {
-			
+			sendMsgButton.setText("Send private" );
 			//selected indices, in increasing order
 			
 			
@@ -327,12 +349,12 @@ public class ChatUI extends JFrame implements ActionListener {
 		chatClient.IServer.sendPrivate(list, pm);
 	}
 
-	void getConnected(String name, String dob, String country) throws RemoteException {
+	void getConnected(String name, String dob, String country, String colour) throws RemoteException {
 		// remove whitespace and non word characters to avoid malformed url
 		name = name.replaceAll("\\s+", "_");
 		name = name.replaceAll("\\W+", "_");
 		try {
-			chatClient = new ChatClient(this, name, dob, country);
+			chatClient = new ChatClient(this, name, dob, country, colour);
 			chatClient.startClient();
 			
 		} catch (RemoteException e) {
