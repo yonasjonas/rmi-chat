@@ -88,3 +88,9 @@ public class DatePicker {
 		return sdf.format(cal.getTime());
 	}
 }
+
+class Picker {
+	public static void main(String[] args) {
+	
+	}
+}

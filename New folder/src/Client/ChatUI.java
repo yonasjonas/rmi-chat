@@ -15,10 +15,8 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import Client.ChatClient;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -29,29 +27,31 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
-import java.text.NumberFormat.Style;
-
 import javax.swing.event.ListSelectionListener;
 
 public class ChatUI extends JFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	static String name, message, dob, country;
+	static String name, message, dob, country, fcolour;
 	private ChatClient chatClient;
 	private JPanel textPanel;
 	public JScrollPane scrollPane;
 	private Integer usersCount = 0;
+	// private DefaultListModel<String> listModel;
 	static String SEND_ACTION = "loginAction";
+	JTextPane textPane;
+	//private static final String PM_ACTION = "PMAction";
+
 	JTextField countUsersArea;
 	protected JTextArea outputArea, userArea, inputArea, userList;
 	protected JFrame frame;
-	protected JButton sendButton, sendMsgButton;
-	protected JPanel defaulUsersPanel, usersPanel, countPanel;
+	protected JButton privateMsgButton, startButton, sendButton, sendMsgButton;
+	protected JPanel defaulUsersPanel, usersPanel, buttonSpace;
 	protected JList<String> jList;
 	protected DefaultListModel<String> defaultList;
+	protected DefaultListModel<String> defaultMessageList;
 	private Document document;
 	StyledDocument doc;
-	public Component textScrollPane;
 
 	public static void main(String[] args) {
 
@@ -60,50 +60,50 @@ public class ChatUI extends JFrame implements ActionListener {
 			UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
 		} catch (Exception e) {
 		}
-		// display login popup first
-		RegisterLoginPopup.main(args);
+		new ChatUI();
 
 	}
-	// constructor of the UI
+
 	public ChatUI() {
 
-		// main frame
 		frame = new JFrame("Welcome");
-		
-		// working area that goes into frame
 		Container container = getContentPane();
-		
-		// setting JPanel to go into container with BroderLayout 
 		JPanel mainPanel = new JPanel(new BorderLayout());
-
-		// adding separate methods to the JPanel
-		mainPanel.add(addOutputPanel(), BorderLayout.CENTER);
-		mainPanel.add(addInputPanel(), BorderLayout.SOUTH);
-		mainPanel.add(usersCount(usersCount), BorderLayout.NORTH);
+		
+		mainPanel.add(addOutputPanel(), BorderLayout.CENTER);		
+		mainPanel.add(addInputPanel(), BorderLayout.SOUTH);		
+		mainPanel.add(usersCount(usersCount), BorderLayout.NORTH);		
 		container.setLayout(new BorderLayout());
 		container.add(mainPanel, BorderLayout.CENTER);
 		container.add(addRightSide(), BorderLayout.EAST);
-		usersPanel.add(countPanel, BorderLayout.SOUTH);
-
 		
 		frame.add(container);
-		frame.setResizable(false);
-		frame.setSize(800, 500);
+		//frame.setResizable(false);
+		frame.setSize(900, 500);
+		//frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-
 		
-		// closes the chat client window. 
-		// Sends messag to all to notify about leaving. 
-		// Removes from chatClient vector. 
+		
+
+		//loginPopUp();
+		
+		//
+		//JOptionPaneTest.display();	
+		
+	 
+
+		// String input = JOptionPane.showInputDialog(null);
+
 		frame.addWindowListener(new java.awt.event.WindowAdapter() {
+			@Override
 			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 
 				if (chatClient != null) {
 					try {
 						sendMessage("Bye all, I am leaving");
 						chatClient.IServer.leaveChat(name);
-
+						
 					} catch (RemoteException e) {
 						e.printStackTrace();
 					}
@@ -111,72 +111,105 @@ public class ChatUI extends JFrame implements ActionListener {
 				System.exit(0);
 			}
 		});
-		Runtime.getRuntime().gc();
 	}
-	// function is triggered from RegisterLoginPopup to initialise reigstration
+	
+	
 	public JTextArea loginPopUp() {
-
+		
+		
+		//outputArea.setText("");
 		try {
-			getConnected(name, dob, country);
-			// System.out.println("getConnected(name, dob, country);" +name+ dob+ country);
+			doc.insertString(0, "Name: " + name + "DOB: " + dob + "Country: " + country + "\n. Everyone say hi!\n", null );
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//outputArea.append("Name: " + name + "DOB: " + dob + "Country: " + country + "\n. Everyone say hi!\n");
+		frame.setTitle("Chat away " + name);
+		
+		System.out.println("Name: " + name + "DOB: " + dob + "Country: " + country + "Colour: " + fcolour);
+		try {
+			getConnected(name, dob, country, fcolour);
+			//System.out.println("getConnected(name, dob, country);"  +name+ dob+ country);
 		} catch (RemoteException e1) {
 			e1.printStackTrace();
 		}
 		
-		// if getConnected was successfully set window title 
-		frame.setTitle("Chat away " + name);
 
 		return outputArea;
 	}
-	// text area for the input of the messages
+
 	public JPanel addInputPanel() {
 		
+//		if (name == null) {
+//			JOptionPaneTest.display();			
+//		}
+
 		JPanel inputPanel = new JPanel(new BorderLayout());
 		inputArea = new JTextArea();
 		inputPanel.setBorder(new EmptyBorder(5, 5, 10, 10));
-		//inputArea.setPreferredSize(new Dimension(540, 90));
-		//inputPanel.setPreferredSize(new Dimension(600, 60));
+		inputPanel.setPreferredSize(new Dimension(150,90));  
 		inputPanel.add(addButton(), BorderLayout.EAST);
 		inputPanel.add(inputArea);
 		return inputPanel;
-
+		
 	}
 	
-	// JTextPane for chat messages to be displayed
 	public JPanel addOutputPanel() {
-
-		JTextPane outputArea = new JTextPane();
-		doc = outputArea.getStyledDocument();
-
-
-
-		outputArea.setMargin(new Insets(10, 10, 10, 10));
 		
-		outputArea.setEditable(false);
-		textScrollPane = new JScrollPane(outputArea);
-		textScrollPane.setPreferredSize(new Dimension(650, 410));
+		textPane = new JTextPane();
+		textPane.setText( "Intro from add outpupnel" );
+		doc = textPane.getStyledDocument();
+		
+
+		//  Define a keyword attribute
+
+		SimpleAttributeSet keyWord = new SimpleAttributeSet();
+		StyleConstants.setForeground(keyWord, Color.RED);
+
+		//  Add some text
+
+		try
+		{
+		    doc.insertString(0, "Welcome\n", null );
+		    
+		}
+		catch(Exception e) { System.out.println(e); }
+
+		//String welcomeMsg = "Enter your name \n";
+
+		//outputArea = new JTextArea(welcomeMsg, 20, 40);
+		//outputArea.setForeground(Color.RED);
+		
+		//outputArea.setMargin(new Insets(10, 10, 10, 10));
+		//outputArea.setLineWrap(true);
+//		outputArea.setWrapStyleWord(true);
+//		outputArea.setEditable(false);
+		JScrollPane scrollPane = new JScrollPane(textPane);
 		textPanel = new JPanel();
-		textPanel.add(textScrollPane);
+		scrollPane.setSize(700, 500);
+		
+		textPanel.add(scrollPane);
+		
+		
 
 		return textPanel;
 
 	}
-	//  placeholder for list of users to go in
+	
 	public JPanel addRightSide() {
 		
-		usersPanel = new JPanel(new BorderLayout()); 
-		usersPanel.setBorder(new EmptyBorder(10, 0, 10, 0)); // [top, left, bottom,right] 
-		JLabel usersLabel = new JLabel("Select User to PM");
-		usersLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		//usersPanel = new JPanel(new BorderLayout());
+		usersPanel = new JPanel(new BorderLayout());
+		usersPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+		JLabel usersLabel = new JLabel("Users");
 		usersLabel.setLayout(null);
-
-		String[] noUsers = { "" };
-		updateUsersPanel(noUsers);
-
-		usersPanel.add(usersLabel, BorderLayout.NORTH);
-
-		return usersPanel;
-
+		
+		String[] noUsers = {"Login to view"};
+		updateUsersPanel(noUsers);		
+		usersPanel.add(usersLabel);		
+		return usersPanel;		
+		
 	}
 	
 	public JPanel updateUsersPanel(String[] list) {
@@ -184,109 +217,121 @@ public class ChatUI extends JFrame implements ActionListener {
 		usersCount = 0;
 		defaulUsersPanel = new JPanel();
 		defaultList = new DefaultListModel<String>();
-
-		// iterate the list of users from server to add them to the list that is used to show users in the right side panel
-		for (String u : list) {
+		
+		
+		for(String u : list){
 			defaultList.addElement("User: " + u);
 			usersCount++;
-			System.out.print("Count: " + usersCount);
-		}
+			//System.out.print("Count: " + usersCount);
+	    }
 		
-		// initialise list and set options of the ListSelectionModel
-		jList = new JList<String>(defaultList);
+		jList = new JList<String>(defaultList);		
 		jList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		jList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		jList.setVisibleRowCount(30);
+		//jList.addListSelectionListener( new SelectingUser());
+		
+		//jList.setSelectedIndex(0);
+		//jList.addListSelectionListener((ListSelectionListener) this);
 		
 		scrollPane = new JScrollPane(jList);
-		usersPanel.add(scrollPane, BorderLayout.CENTER);
-		scrollPane.setPreferredSize(new Dimension(120, 450));
-		//usersPanel.add(defaulUsersPanel, BorderLayout.CENTER);
-		scrollPane.repaint();
-		scrollPane.revalidate();
+
+		defaulUsersPanel.add(scrollPane, BorderLayout.CENTER);	
+		usersPanel.add(defaulUsersPanel, BorderLayout.CENTER);
+		usersPanel.repaint();
+		usersPanel.revalidate();
 		
-		// update JTextfield that displays number of users logged in
 		countUsersArea.setText("Users:" + usersCount);
 		countUsersArea.repaint();
 		countUsersArea.revalidate();
-		
-		
-		
+
 		return usersPanel;
 	}
-	// update JTextfield that displays number of users logged in
+	
 	public JPanel usersCount(int usersCount) {
-
-		countPanel = new JPanel();
+		JPanel countPanel = new JPanel();		
 		countUsersArea = new JTextField();
-		
-		countUsersArea.setMinimumSize(getMinimumSize());
+		countUsersArea.setSize(20, 50);		
 		countUsersArea.setMargin(new Insets(10, 10, 10, 10));
 		countUsersArea.setEditable(false);
 		countPanel.add(countUsersArea, BorderLayout.CENTER);
-		
 		return countPanel;
 	}
 	
-	// Same button for all purposes where SEND_ACTION command defined dynamically. 
-	// It works in actionPerformed() to change the value if users selected.
+
+	
+
 	public JButton addButton() {
 
-		sendMsgButton = new JButton("Send");
-		//sendMsgButton.setPreferredSize(new Dimension(100, 220));
-		
-		// SEND_ACTION depends on privatelist in actionPerformed()
+		buttonSpace = new JPanel(new GridLayout(1, 1, 5, 5));
+		JButton sendMsgButton = new JButton("Send to all");
+		sendMsgButton.setBounds(650, 250, 200, 150);
 		sendMsgButton.setActionCommand(SEND_ACTION);
 		sendMsgButton.addActionListener(this);
-		inputArea.setFocusable(true);
-		inputArea.setFont(inputArea.getFont().deriveFont(40f));
+		buttonSpace.add(sendMsgButton);
 		
-		// get text from jTextField input area
-		message = inputArea.getText();		
-		// initialy button is disabled 
-		sendMsgButton.setEnabled(false);		
-		// gets the state of the button
-		document = inputArea.getDocument();		
-		// implement a class to change the estate of the button to disabled if it is empty
+		//inputArea.addKeyListener(this);
+		inputArea.setFocusable(true);
+		
+		message = inputArea.getText();
+		sendMsgButton.setEnabled(false);
+		document = inputArea.getDocument();
 		document.addDocumentListener(new JButtonStateController(sendMsgButton));
-
+		
+		
 		return sendMsgButton;
 	}
-    // action listener
+	
+	
+	
+
+
 	public void actionPerformed(ActionEvent e) {
-
-		// set message text from inputArea to be sent
+		//String count = usersCount.toString();
+		countUsersArea.setText("Users:" + usersCount);
+		System.out.print("Here is the value: " + jList.getSelectedValue());
+		System.out.print("name: " + SEND_ACTION);
 		message = inputArea.getText();
-		
-		// idea was to select multiple user but then went single item selection.
-		// Todo change to getSelectedIndex() 
 		int[] privateList = jList.getSelectedIndices();
-		System.out.print("getSelectionIndex():" + privateList);
-
-		// if user is selected in the usersArea set button action to private message
+		System.out.print("getSelectionIndex():" + privateList  );
+		
 		if (privateList.length > 0) {
 			SEND_ACTION = "pmAction";
-			// else send to all
+			
+			//sendMsgButton.setText("Send to " + name );
 		} else {
 			SEND_ACTION = "sendAction";
+			//sendMsgButton.setText("Send to all" );
 		}
-		
-		// invokes this if user has selected user to send PM
+		// System.out.println("false: " + e.getActionCommand());
+		if (SEND_ACTION == "loginAction") {
+			
+			//loginPopUp();
+		} 
 		if (SEND_ACTION == "pmAction") {
-
+			sendMsgButton.setText("Send private" );
+			//selected indices, in increasing order
+			
+			
+			for(int i=0; i<privateList.length; i++){
+				System.out.println("selected index :" + privateList[i]);
+			}
+			message = inputArea.getText();
 			inputArea.setText("");
 			try {
-				// need to change this to int instead
 				sendPrivateMessage(privateList);
 			} catch (RemoteException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+			
 		}
-		// sends message to all users
 		if (SEND_ACTION == "sendAction") {
-
+			// .out.print("name: " + name);
+			
+			
 			inputArea.setText("");
+
 			try {
 				sendMessage(message);
 			} catch (RemoteException e1) {
@@ -296,33 +341,34 @@ public class ChatUI extends JFrame implements ActionListener {
 		}
 
 	}
-
-	// rmi methods goes here
-
-	// initiates to send message to the users in the list. Need to change to int instead.
+	
+	// rmi methods
+	
 	private void sendPrivateMessage(int[] list) throws RemoteException {
 		String pm = name + " just sent you private a message: \n" + message + "\n";
 		chatClient.IServer.sendPrivate(list, pm);
 	}
 
-	// takes user submitted details and sends to the server for name check and addition to the chatClients Vector.
-	void getConnected(String name, String dob, String country) throws RemoteException {
-		// if user used special characters this will remove it. 
+	void getConnected(String name, String dob, String country, String colour) throws RemoteException {
+		// remove whitespace and non word characters to avoid malformed url
 		name = name.replaceAll("\\s+", "_");
 		name = name.replaceAll("\\W+", "_");
 		try {
-			// create new chatClient instance
-			chatClient = new ChatClient(this, name, dob, country);
-			// invokes constructor in chatClient class for the connection and communication.
+			chatClient = new ChatClient(this, name, dob, country, colour);
 			chatClient.startClient();
-
+			
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
 	}
-	// sends chatMessage to the server for distribution to all connected clients
+
 	private void sendMessage(String chatMessage) throws RemoteException {
-		chatClient.IServer.massSend(name + ": " + chatMessage, name);
+		chatClient.IServer.updateChat(name, chatMessage);
+	}
+
+	public void getUserList() {
+		
 	}
 
 }
+

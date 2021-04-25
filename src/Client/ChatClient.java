@@ -1,18 +1,16 @@
 package Client;
 
-import java.awt.Color;
+import java.awt.Window;
 import java.net.MalformedURLException;
 import java.rmi.ConnectException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-
 import Server.IChatServer;
 
 public class ChatClient extends UnicastRemoteObject implements IChatClient {
@@ -27,23 +25,25 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 
 	protected IChatServer IServer;
 	protected boolean connectionProblem = false;
-	private String colour;
 
-	public ChatClient(ChatUI ChatGUI, String userName, String dateOfBirth, String selectedCountry, String colour )
+	// constructor with information 
+	public ChatClient(ChatUI ChatGUI, String userName, String dateOfBirth, String selectedCountry)
 			throws RemoteException {
 		super();
 		this.chatGUI = ChatGUI;
 		this.name = userName;
 		this.dob = dateOfBirth;
 		this.country = selectedCountry;
-		this.colour = colour;
 		this.clientServiceName = "ClientListenService_" + userName;
 
 	}
-
+	// startClient() is invoked in ChatUI to establish connection with the server 
 	public void startClient() throws RemoteException {
-		String[] details = { name, dob, country, colour, clientServiceName, hostName };
+		
+		// object to be passed to server
+		String[] details = { name, dob, country, clientServiceName, hostName };
 
+		// creating server stub 
 		try {
 			Naming.rebind("rmi://" + hostName + "/" + clientServiceName, this);
 			IServer = (IChatServer) Naming.lookup("rmi://" + hostName + "/" + serviceName);
@@ -56,77 +56,53 @@ public class ChatClient extends UnicastRemoteObject implements IChatClient {
 			connectionProblem = true;
 			me.printStackTrace();
 		}
+		// if no problem sends details object to the server to be processed
 		if (!connectionProblem) {
-			System.out.print("details: " + details);
 			IServer.initiateRegister(details);
 
 		}
+		// print this if it was able to reach this point
 		System.out.println("Client Listen RMI Server is running...\n");
 	}
 
-	public void openLogin(String message) {	
-		//RegisterLoginPopup.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-		RegisterLoginPopup.main(null);
+	
+	// This method is not working at moment of submission but leaving it here to show that i tried.
+	// idea was to invoke openLogin from server when name is already taken
+	// it open only blank window.
+	public void openLogin(String message, boolean sameName) {	
+		
+		RegisterLoginPopup.disposeWindow();
+		Window[] windows = Window.getWindows();
+        for (Window window : windows) {
+            if (window instanceof JDialog) {
+                JDialog dialog = (JDialog) window;
+                if (dialog.getContentPane().getComponentCount() == 1
+                    && dialog.getContentPane().getComponent(0) instanceof JOptionPane){
+                    dialog.dispose();                    
+                }
+            }
+        }
 		
 	}
 	
-//	@Override
-//	public void messageFromServer(String message) throws RemoteException {
-//
-//		//IServer
-//		//JPanel textPanel = new JPanel();
-//		//chatGUI.outputArea.append("\n");
-//		chatGUI.outputArea.setText(chatGUI.inputArea.getText());		
-//		chatGUI.textPanel.add(chatGUI.outputArea);
-//		//chatGUI.textPanel.add(chatGUI.outputArea);
-//		
-//		//chatGUI.outputArea.append(message);
-//		System.out.print("From the moon: " + chatGUI.inputArea.getText());
-//		chatGUI.inputArea.setText("");
-//		chatGUI.textPanel.repaint();
-//		chatGUI.textPanel.revalidate();
-//
-//	}
-	
-	public String checkAlive() {
-		String alive = "alive";
-		
-		return alive; 
-	}
-	public void setUserColour(String colour) {
-		SimpleAttributeSet keyWord = new SimpleAttributeSet();
-		StyleConstants.setForeground(keyWord, Color.RED);
-		
-		
-	}
-
+	// Server send meesage and keyword which is the font colour of this user
 	@Override
-	public void messageFromServer(String message) throws RemoteException {
+	public void messageFromServer(String message,  SimpleAttributeSet keyWord) throws RemoteException {			
+		try { 
+			// first argument sets the position of the meesage to go in
+        	chatGUI.doc.insertString(chatGUI.doc.getLength(), message + "\n", keyWord); 
+        }
+        catch (BadLocationException e){
+        	System.out.print(e);
+        }        
 
-		//IServer
-		//chatGUI.outputArea.append("\n");		
-		//chatGUI.outputArea.append(message);
-		//container.add(textPane, BorderLayout.EAST);
-		chatGUI.doc = chatGUI.textPane.getStyledDocument();
-		SimpleAttributeSet keyWord = new SimpleAttributeSet();
-		StyleConstants.setForeground(keyWord, Color.RED);
-		
-		
-		try {
-			//chatGUI.doc.insertString(0, message, keyWord );
-			chatGUI.doc.insertString(chatGUI.doc.getLength(), "\nEnd of text", keyWord );
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
-
+	// remove usersPanel in the UI when updating users list and add it new one again
 	public void showUserList(String[] users) throws RemoteException {
-
-		chatGUI.defaulUsersPanel.remove(chatGUI.scrollPane);		
+		chatGUI.usersPanel.remove(chatGUI.scrollPane);	
 		chatGUI.updateUsersPanel(users);
 		chatGUI.usersPanel.repaint();
 		chatGUI.usersPanel.revalidate();
-
 	}
+
 }

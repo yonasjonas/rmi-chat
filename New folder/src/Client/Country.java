@@ -1,12 +1,9 @@
 package Client;
 
-// country class for the implementation in the country selection on the initial login
-
 public class Country implements Comparable<Country> {
     private String code;
     private String name;
  
-    // model of country
     public Country(String code, String name) {
         this.code = code;
         this.name = name;

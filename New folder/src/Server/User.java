@@ -14,13 +14,9 @@ public class User {
 		this.dob = dob;
 		this.country = country;
 		this.clientInfo = clientInfo;
-<<<<<<< HEAD
-	}	
-=======
 		this.fcolour = fcolour;
 	}
 	
->>>>>>> 1c2013c7db3989daa785cc368e5129f975bdcc03
 	
 	public String getName() {
 		return name;

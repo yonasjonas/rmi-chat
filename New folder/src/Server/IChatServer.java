@@ -15,22 +15,11 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteRef;
 
 public interface IChatServer extends Remote {
-<<<<<<< HEAD
-
-
-	public void registerUser(String[] details)throws RemoteException;
-	public void initiateRegister(String[] details) throws RemoteException;
-	public void sendPrivate(int[] list, String message) throws RemoteException;
-=======
     void updateChat(String name, String chatMessage) throws RemoteException;
 	void registerUser(String[] details)throws RemoteException;
 	void initiateRegister(String[] details) throws RemoteException;
 	void sendPrivate(int[] list, String message) throws RemoteException;
->>>>>>> 1c2013c7db3989daa785cc368e5129f975bdcc03
 	void leaveChat(String name) throws RemoteException;
-	public void massSend(String chatMessage, String name) throws RemoteException; 
-
-	
 	
 	
 }

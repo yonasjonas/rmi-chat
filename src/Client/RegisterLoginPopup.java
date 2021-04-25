@@ -2,6 +2,7 @@ package Client;
 
 import java.awt.EventQueue;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -10,79 +11,107 @@ import java.util.Locale;
 
 import javax.swing.*;
 
-/** @see https://stackoverflow.com/a/3002830/230513 */
+// this class implements UI initial prompt for user to enter their personal details that will be sent to the ChatClient for registration with server.
 class RegisterLoginPopup {
 	
-	static void displayLogin() {
+	//Initial frame to live inside JOptionPane
+	static JFrame f = new JFrame();
+	
+	static void displayLogin(String message, boolean sameName) {
 		
+		
+		// if it is first attempt to login set message for label
+		if (message == null) {
+			message = "Hello. Enter your details";
+		}
+		// 
 		//Boolean chatInitiated = false;
-		Country[] listCountry = createCountryList();
-		JComboBox<Country> combo = new JComboBox<>(listCountry);
-		//JComboBox<String> combo = new JComboBox<>(countryCodes);
-
-		JTextField name = new JTextField();
+		
+		
+		
+		// Main JPanel
 		JPanel panel = new JPanel(new GridLayout(0, 1));
+		
+		// Adds a label 
+		panel.add(new JLabel(message));
+		
+		// User name field
+		JTextField name = new JTextField();
+		
+		// method to gather a list of all Countries 
+		Country[] listCountry = createCountryList();
+		// Drop down field for country list
+		JComboBox<Country> combo = new JComboBox<>(listCountry);
+		
+		final JTextField datePicker = new JTextField(20);
+		JButton b = new JButton("open calendar");
+		
+		// Adding elements to the panel one after another
 		panel.add(new JLabel("\n Enter you Name"));
 		panel.add(name);
 		
-		// Panel for pop up
+		panel.add(new JLabel("\n Date of Birth:"));	
 		
-		// Frame for pop up
-		JFrame f = new JFrame();
-		
-		// Name label and field
-		JPanel p = new JPanel();
-		final JTextField text = new JTextField(20);
-		p.add(new JLabel("\n Date of Birth:"));
-		p.add(text);
-		JButton b = new JButton("open calendar");
-		
-		// DOB panel, label and field
-		
-		
-		
-		
-		//add button
-		p.add(b);
-		
-		panel.add(p);
+		// datePicker field where settext will be set
+		panel.add(datePicker);
+		//add button to open calendar
+		panel.add(b);	
 		
 		// Country label and field
-		p.add(new JLabel("\n Country:"));
+		panel.add(new JLabel("\n Country:"));
 		panel.add(combo);
+		
 		panel.setVisible(true);
+		
+		// listener to set datePicker
 		b.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
-				text.setText(new DatePicker(f).setPickedDate());
+				datePicker.setText(new DatePicker(f).setPickedDate());
 			}
 		});
 		
 
-		int result = JOptionPane.showConfirmDialog(null, panel, "Enter your details to login", JOptionPane.OK_CANCEL_OPTION,
-				JOptionPane.PLAIN_MESSAGE);
-		if (result == JOptionPane.OK_OPTION) {
+		int result = JOptionPane.showConfirmDialog(null, panel, "Enter your details to login", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+		if (result == JOptionPane.OK_OPTION ) {
 			
 			
+			// set values of the client info to be accessed in the ChatUI class
+			// I am sure there is a better way to do it but I don't know it...
 			Country selectedCountry = (Country) combo.getSelectedItem();
 			ChatUI.name = name.getText();
-			ChatUI.dob = text.getText();
+			ChatUI.dob = datePicker.getText();
 			ChatUI.country = selectedCountry.toString();
 				
-			System.out.println("Name: " + name.getText() + "DOB: " + text.getText() + "Country: " + combo.getSelectedItem());
+			System.out.println("Name: " + name.getText() + "DOB: " + ChatUI.dob + "Country: " + combo.getSelectedItem());
+			
+			// set button action to send to all clients
 			ChatUI.SEND_ACTION = "sendAction";
 			
-			if (ChatUI.name != null) {
-				//panel.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
+			
+			// this part is not working correctly 
+			// due to lack of time it is not finished...
+			if (!sameName) {
+				panel.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
+				disposeWindow();
 				ChatUI ch = new ChatUI();
 				ch.loginPopUp();
-				//panel.dispatchEvent(new WindowEvent(f, WindowEvent.WINDOW_CLOSING));
+				
 			}
+			else {				 
+				//main(null);
+			}
+		// if login promt is closed it prints in the console
 		} else {
 			System.out.println("Cancelled");
-			//display();
+
 		}
 	}
+	// this is also not working but leaving with a hope that I was on the right path
+	public static void disposeWindow() {
+		f.dispose();
+	}
 	
+	// function to create value pairs of code : country name
 	private static Country[] createCountryList() {
         String[] countryCodes = Locale.getISOCountries();
         Country[] listCountry = new Country[countryCodes.length];
@@ -90,8 +119,7 @@ class RegisterLoginPopup {
         for (int i = 0; i < countryCodes.length; i++) {
             Locale locale = new Locale("", countryCodes[i]);
             String code = locale.getCountry();
-            String name = locale.getDisplayCountry();
- 
+            String name = locale.getDisplayCountry(); 
             listCountry[i] = new Country(code, name);
         }
  
@@ -99,14 +127,16 @@ class RegisterLoginPopup {
         return listCountry;
     }
 	
+	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-
 			
 			@Override
 			public void run() {
-				displayLogin();
+				displayLogin(null, false);
 			}
 		});
 	}
+	
+	
 }
